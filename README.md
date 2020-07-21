@@ -1,6 +1,5 @@
 # druid
 
-Parses requests from Prometheus`s alertmanager
 kubernetes ready service
 
 #### build:
