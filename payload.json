@@ -1,0 +1,21 @@
+{
+  "receiver": "shell-bot-devel",
+  "alerts": [
+    {
+      "status": "firing",
+      "labels": {
+        "alertname": "reload-nginx",
+        "instance": "https://somehost.com",
+        "job": "blackbox",
+        "monitor": "prom.somehost.com",
+        "severity": "reload-nginx"
+      },
+      "annotations": {
+        "description": "http://grafana.somehost.com/d/xtkCtBkiz/http-ssl-overview?refresh=1m&orgId=1",
+        "summary": "[https://somehost.com] SSL expiration triggered reload-nginx"
+      },
+      "startsAt": "2020-02-13T13:08:49.927376679+02:00",
+      "endsAt": "0001-01-01T00:00:00Z"
+    }
+  ]
+}
