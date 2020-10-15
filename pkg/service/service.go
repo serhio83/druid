@@ -84,7 +84,8 @@ func (s *Service) Run() {
 		fmt.Sprintf("%s The druid is listen on http://0.0.0.0:%v/", logHeader, port)))
 
 	//create new docker registry worker
-	go w.NewWorker(time.Second*60, s.Config, s.DB)
+	stopWorker := make(chan bool, 1)
+	go w.NewWorker(time.Second*30, s.Config, s.DB, stopWorker)
 
 	// wait for signal
 	select {
@@ -102,6 +103,7 @@ func (s *Service) Run() {
 	// killall
 	log.Println(u.Envelope(logHeader + " The druid is shutting down..."))
 	srv.Shutdown(context.Background())
-	s.DB.Close()
+	stopWorker <- true
+	time.Sleep(time.Second)
 	log.Println(u.Envelope(logHeader + " Done"))
 }

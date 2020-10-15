@@ -20,21 +20,22 @@ type Worker struct {
 	*time.Ticker
 	repos *Repos
 	*bbolt.DB
+	stop chan bool
 }
 
 // NewWorker creates new registry worker
-func NewWorker(interval time.Duration, c *config.Config, db *bbolt.DB) *Worker {
+func NewWorker(interval time.Duration, c *config.Config, db *bbolt.DB, stop <-chan bool) *Worker {
 	w := new(Worker)
 	w.DB = db
 	w.Config = c
 	w.Ticker = time.NewTicker(interval)
 	log.Println(u.Envelope(logHeader + " docker registry worker started"))
-	go w.process()
+	go w.process(stop)
 	return w
 }
 
 // process registry images
-func (w *Worker) process() {
+func (w *Worker) process(stop <-chan bool) {
 	for {
 		select {
 		case <-w.C:
@@ -50,6 +51,9 @@ func (w *Worker) process() {
 				}
 			}
 			log.Println(u.Envelope(fmt.Sprintf("%s images processed: %d", logHeader, len(w.repos.Repositories))))
+		case <-stop:
+			log.Println(u.Envelope(logHeader + " worker stopped"))
+			return
 		}
 	}
 }
