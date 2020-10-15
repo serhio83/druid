@@ -1,8 +1,8 @@
 module github.com/serhio83/druid
 
-go 1.14
+go 1.15
 
 require (
-	github.com/gorilla/mux v1.7.4
-	github.com/mailru/easyjson v0.7.1
+	github.com/gorilla/mux v1.8.0
+	go.etcd.io/bbolt v1.3.5
 )

@@ -3,7 +3,10 @@ package utils
 import "bytes"
 
 // ancient magic =)
-const decSymbol = "\u2388"
+// \u2388 Helm Symbol
+// \u0fd5 Right-Facing Svasti Sign
+// \u2693 Anchor
+const decSymbol = "\u0fd5"
 const space = ` `
 
 //StringSplitter split \n & \r from byte slice & return string
@@ -19,7 +22,7 @@ func StringSplitter(b bytes.Buffer) string {
 	return string(prepStr)
 }
 
-//StringDecorator join string with prerfix & postfix decorators
-func StringDecorator(s string) string {
+//Envelope join string with prerfix & postfix decorators
+func Envelope(s string) string {
 	return decSymbol + space + s + space + decSymbol
 }

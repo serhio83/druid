@@ -1,8 +1,9 @@
+include .env # make your conf from .env.example
 export WORKDIR := $(shell pwd)
 export GO111MODULE=on
+
 PREFIX?=serhio
 APP?=druid
-PORT?=9999
 RELEASE?=v0.0.1
 COMMIT?=$(shell git rev-parse --short HEAD)
 BUILD_TIME?=$(shell date -u '+%Y-%m-%d_%H:%M:%S')
@@ -12,9 +13,6 @@ GOARCH?=amd64
 
 clean:
 	rm -f ${APP}
-
-deps:
-	go generate
 
 build: clean
 	CGO_ENABLED=0 GOOS=${GOOS} GOARCH=${GOARCH} go build \
@@ -26,11 +24,16 @@ container: build
 	docker build -t $(PREFIX)/$(APP):$(RELEASE) .
 
 run: container
-	docker run --name ${APP} -p ${PORT}:${PORT} --rm -e "PORT=${PORT}" -v $(WORKDIR)/.ssh:/root/.ssh $(PREFIX)/$(APP):$(RELEASE)
-
-keys:
-	ssh-keygen -t rsa -b 4096 -f .ssh/id_rsa -q -N ""
-	ssh-copy-id -f -i .ssh/id_rsa root@gw.tp.fbs
+	docker run --name ${APP} -p ${DRUID_LISTEN_PORT}:${DRUID_LISTEN_PORT} --rm \
+	-e "PORT=${DRUID_LISTEN_PORT}" \
+	-e "DRUID_REGISTRY_HOST=${DRUID_REGISTRY_HOST}" \
+	-e "DRUID_REGISTRY_PORT=${DRUID_REGISTRY_PORT}" \
+	-e "DRUID_REGISTRY_USER=${DRUID_REGISTRY_USER}" \
+	-e "DRUID_REGISTRY_PASSWORD=${DRUID_REGISTRY_PASSWORD}" \
+	-e "DRUID_LISTEN_PORT=${DRUID_LISTEN_PORT}" \
+	-e "DRUID_DATA_PATH=${DRUID_DATA_PATH}" \
+	-v "${WORKDIR}/storage:/opt/druid" \
+	$(PREFIX)/$(APP):$(RELEASE)
 
 push:
 	docker push $(PREFIX)/$(APP):$(RELEASE)

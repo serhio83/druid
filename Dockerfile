@@ -7,3 +7,5 @@ EXPOSE $PORT
 
 COPY druid /
 CMD ["/druid"]
+
+VOLUME [ "/opt/druid" ]

@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 
-	utils "github.com/serhio83/druid/pkg/utils"
+	u "github.com/serhio83/druid/pkg/utils"
 )
 
 func healthz(w http.ResponseWriter, _ *http.Request) {
@@ -15,7 +15,7 @@ func healthz(w http.ResponseWriter, _ *http.Request) {
 	}{"work fine"}
 	body, err := json.Marshal(okz)
 	if err != nil {
-		log.Println(utils.StringDecorator(fmt.Sprintf("Error marshaling json: %v", err)))
+		log.Println(u.Envelope(fmt.Sprintf("Error marshaling json: %v", err)))
 	}
 
 	w.Header().Set("Content-Type", "application/json")

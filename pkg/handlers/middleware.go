@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/serhio83/druid/pkg/utils"
+	u "github.com/serhio83/druid/pkg/utils"
 )
 
 func checkHeaders(f http.HandlerFunc) http.HandlerFunc {
@@ -18,8 +18,9 @@ func checkHeaders(f http.HandlerFunc) http.HandlerFunc {
 		// check if Content-Type: application/json used and fail if not
 		ah := r.Header.Get("Content-Type")
 		if ah != "application/json" {
-			log.Println(utils.StringDecorator(
-				fmt.Sprintf("%s - %s [400] you should use Content-Type: application/json",
+			log.Println(u.Envelope(
+				fmt.Sprintf("%s %s - %s [400] you should use Content-Type: application/json",
+					logHeader,
 					rAddr,
 					rHost)))
 			http.Error(w, "Invalid Content-Type", http.StatusBadRequest)
@@ -28,8 +29,9 @@ func checkHeaders(f http.HandlerFunc) http.HandlerFunc {
 
 		// fail if zero content length
 		if r.ContentLength == 0 {
-			log.Println(utils.StringDecorator(
-				fmt.Sprintf("%s - %s [400] Invalid request payload",
+			log.Println(u.Envelope(
+				fmt.Sprintf("%s %s - %s [400] Invalid request payload",
+					logHeader,
 					rAddr,
 					rHost)))
 			http.Error(w, "Invalid request payload", http.StatusBadRequest)
