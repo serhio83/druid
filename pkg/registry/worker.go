@@ -68,11 +68,18 @@ func (w *Worker) storeBucket(name string) error {
 	// Start a write transaction.
 	if err := w.DB.Update(func(tx *bbolt.Tx) error {
 		// Create a bucket.
-		_, err := tx.CreateBucketIfNotExists([]byte(name))
+		b, err := tx.CreateBucketIfNotExists([]byte(name))
 		if err != nil {
 			log.Println(u.Envelope(fmt.Sprintf("fail in tx: %v", err)))
 			return err
 		}
+		date := time.Now()
+		errb := b.Put([]byte("created"), []byte(date.Format(time.RFC3339Nano)))
+		if errb != nil {
+			log.Println(u.Envelope(fmt.Sprintf("%v", errb)))
+
+		}
+
 		return nil
 	}); err != nil {
 		log.Println(u.Envelope(fmt.Sprintf("cant create bucket: %v", err)))
