@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 
@@ -85,7 +86,9 @@ func (s *Service) Run() {
 
 	//create new docker registry worker
 	stopWorker := make(chan bool, 1)
-	go w.NewWorker(time.Second*30, s.Config, s.DB, stopWorker)
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go w.NewWorker(time.Second*10, s.Config, s.DB, stopWorker, &wg)
 
 	// wait for signal
 	select {
@@ -104,6 +107,6 @@ func (s *Service) Run() {
 	log.Println(u.Envelope(logHeader + " The druid is shutting down..."))
 	srv.Shutdown(context.Background())
 	stopWorker <- true
-	time.Sleep(time.Second)
+	wg.Wait()
 	log.Println(u.Envelope(logHeader + " Done"))
 }

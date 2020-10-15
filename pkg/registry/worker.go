@@ -3,6 +3,7 @@ package registry
 import (
 	"fmt"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/serhio83/druid/pkg/config"
@@ -24,18 +25,20 @@ type Worker struct {
 }
 
 // NewWorker creates new registry worker
-func NewWorker(interval time.Duration, c *config.Config, db *bbolt.DB, stop <-chan bool) *Worker {
+func NewWorker(interval time.Duration, c *config.Config, db *bbolt.DB, stop <-chan bool, wg *sync.WaitGroup) *Worker {
 	w := new(Worker)
 	w.DB = db
 	w.Config = c
 	w.Ticker = time.NewTicker(interval)
 	log.Println(u.Envelope(logHeader + " docker registry worker started"))
-	go w.process(stop)
+	go w.process(stop, wg)
+
 	return w
+
 }
 
 // process registry images
-func (w *Worker) process(stop <-chan bool) {
+func (w *Worker) process(stop <-chan bool, wg *sync.WaitGroup) {
 	for {
 		select {
 		case <-w.C:
@@ -50,8 +53,11 @@ func (w *Worker) process(stop <-chan bool) {
 					log.Fatal(u.Envelope(fmt.Sprintf("cant store bucket: %v", err)))
 				}
 			}
+
 			log.Println(u.Envelope(fmt.Sprintf("%s images processed: %d", logHeader, len(w.repos.Repositories))))
+
 		case <-stop:
+			defer wg.Done()
 			log.Println(u.Envelope(logHeader + " worker stopped"))
 			return
 		}
