@@ -15,6 +15,8 @@ import (
 const (
 	drCatalogURL = "/v2/_catalog?n=1000"
 	drTagsList   = "/tags/list?n=1000"
+	ver1         = "application/vnd.docker.distribution.manifest.v1+json"
+	ver2         = "application/vnd.docker.distribution.manifest.v2+json"
 )
 
 // Tag name
@@ -57,7 +59,7 @@ type History struct {
 	V1Compatibility string `json:"v1Compatibility"`
 }
 
-func makeV2Request(url, m string, c *config.Config) *http.Response {
+func registryRequest(url, m string, c *config.Config, version string) *http.Response {
 	config := &tls.Config{
 		InsecureSkipVerify: true,
 	}
@@ -66,24 +68,7 @@ func makeV2Request(url, m string, c *config.Config) *http.Response {
 
 	req, _ := http.NewRequest(m, url, nil)
 	req.SetBasicAuth(c.RegUser, c.RegPass)
-	req.Header.Set("Accept", "application/vnd.docker.distribution.manifest.v2+json")
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Println(err)
-	}
-	defer client.CloseIdleConnections()
-	return resp
-}
-
-func makeV1Request(url, m string, c *config.Config) *http.Response {
-	config := &tls.Config{
-		InsecureSkipVerify: true,
-	}
-	tr := &http.Transport{TLSClientConfig: config}
-	client := &http.Client{Transport: tr}
-	req, _ := http.NewRequest(m, url, nil)
-	req.SetBasicAuth(c.RegUser, c.RegPass)
-	req.Header.Set("Accept", "application/vnd.docker.distribution.manifest.v1+json")
+	req.Header.Set("Accept", version)
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Println(err)
@@ -94,7 +79,7 @@ func makeV1Request(url, m string, c *config.Config) *http.Response {
 
 // DelManifest ...
 func DelManifest(c *config.Config, registry, manifest string) string {
-	resp := makeV2Request(c.RegHost+":"+c.RegPort+"/v2/"+registry+"/manifests/"+manifest, "DELETE", c)
+	resp := registryRequest(c.RegHost+":"+c.RegPort+"/v2/"+registry+"/manifests/"+manifest, "DELETE", c, ver2)
 	_, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println(err)
@@ -119,7 +104,7 @@ func unixToTime(date string) *time.Time {
 // GetCreationDate ...
 func GetCreationDate(c *config.Config, registry, tagName string) string {
 
-	resp := makeV1Request(c.RegHost+":"+c.RegPort+"/v2/"+registry+"/manifests/"+tagName, "GET", c)
+	resp := registryRequest(c.RegHost+":"+c.RegPort+"/v2/"+registry+"/manifests/"+tagName, "GET", c, ver1)
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println(err)
@@ -143,7 +128,7 @@ func GetCreationDate(c *config.Config, registry, tagName string) string {
 
 // GetManifest ...
 func GetManifest(c *config.Config, registry, tagName string) (string, string) {
-	resp := makeV2Request(c.RegHost+":"+c.RegPort+"/v2/"+registry+"/manifests/"+tagName, "GET", c)
+	resp := registryRequest(c.RegHost+":"+c.RegPort+"/v2/"+registry+"/manifests/"+tagName, "GET", c, ver2)
 	_, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println(err)
@@ -153,7 +138,7 @@ func GetManifest(c *config.Config, registry, tagName string) (string, string) {
 
 // ListTags ...
 func ListTags(c *config.Config, registry string) *Tags {
-	resp := makeV2Request(c.RegHost+":"+c.RegPort+"/v2/"+registry+drTagsList, "GET", c)
+	resp := registryRequest(c.RegHost+":"+c.RegPort+"/v2/"+registry+drTagsList, "GET", c, ver2)
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println(err)
@@ -168,7 +153,7 @@ func ListTags(c *config.Config, registry string) *Tags {
 
 // ListImages ...
 func ListImages(c *config.Config) (*Repos, error) {
-	resp := makeV2Request(c.RegHost+":"+c.RegPort+drCatalogURL, "GET", c)
+	resp := registryRequest(c.RegHost+":"+c.RegPort+drCatalogURL, "GET", c, ver2)
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {

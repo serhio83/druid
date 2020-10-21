@@ -32,6 +32,7 @@ type Service struct {
 
 // Initialize service
 func (s *Service) Initialize() {
+
 	s.Config = c.New()
 	db, err := bbolt.Open(s.Config.BboltPath+"/bbolt.db", 0644, nil)
 	if err != nil {
@@ -39,9 +40,15 @@ func (s *Service) Initialize() {
 	}
 	s.DB = db
 
-	log.Println(u.Envelope(fmt.Sprintf("%s Configured registry: %s:%s", logHeader, s.Config.RegHost, s.Config.RegPort)))
-	log.Println(u.Envelope(fmt.Sprintf("%s Bbolt storage: %s", logHeader, s.Config.BboltPath+"/bbolt.db")))
+	log.Println(u.Envelope(fmt.Sprintf(
+		"%s Configured registry: %s:%s",
+		logHeader, s.Config.RegHost, s.Config.RegPort,
+	)))
 
+	log.Println(u.Envelope(fmt.Sprintf(
+		"%s Bbolt storage: %s",
+		logHeader, s.Config.BboltPath+"/bbolt.db",
+	)))
 }
 
 // Run service
@@ -88,7 +95,7 @@ func (s *Service) Run() {
 	stopWorker := make(chan bool, 1)
 	var wg sync.WaitGroup
 	wg.Add(1)
-	go w.NewWorker(time.Second*10, s.Config, s.DB, stopWorker, &wg)
+	go w.NewWorker(time.Second*60, s.Config, s.DB, stopWorker, &wg)
 
 	// wait for signal
 	select {
