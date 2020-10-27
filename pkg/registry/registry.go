@@ -3,6 +3,7 @@ package registry
 import (
 	"crypto/tls"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -10,6 +11,7 @@ import (
 	"time"
 
 	"github.com/serhio83/druid/pkg/config"
+	"github.com/serhio83/druid/pkg/utils"
 )
 
 const (
@@ -122,7 +124,7 @@ func GetCreationDate(c *config.Config, registry, tagName string) string {
 		ct := timeToUnix(raw["created"].(string))
 		return ct
 	}
-	log.Println("No creation time found")
+	log.Println(utils.Envelope(fmt.Sprintf("%s [time.search] %s:%s No creation time found", logHeader, registry, tagName)))
 	return "nodate"
 }
 

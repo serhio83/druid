@@ -95,7 +95,7 @@ func (s *Service) Run() {
 	stopWorker := make(chan bool, 1)
 	var wg sync.WaitGroup
 	wg.Add(1)
-	go w.NewWorker(time.Second*60, s.Config, s.DB, stopWorker, &wg)
+	go w.NewWorker(time.Minute*2, s.Config, s.DB, stopWorker, &wg)
 
 	// wait for signal
 	select {

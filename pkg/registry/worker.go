@@ -53,7 +53,7 @@ func NewWorker(interval time.Duration, c *config.Config, db *bbolt.DB, stop <-ch
 	imgChan := make(chan string, 10000)
 
 	go func() {
-		w.tagProc = newTagProcessor(10000, stopProc, imgChan, w.DB, c)
+		w.tagProc = newTagProcessor(3000, stopProc, imgChan, w.DB, c)
 	}()
 
 	go w.process(stop, stopProc, wg)
@@ -66,6 +66,7 @@ func (w *Worker) process(stop <-chan bool, stopProc chan<- bool, wg *sync.WaitGr
 	for {
 		select {
 		case <-w.C:
+			log.Println(u.Envelope(fmt.Sprintf("%s [w.tick] start processing on new tick", logHeader)))
 			images, err := ListImages(w.Config)
 			if err != nil {
 				log.Fatal(err)
@@ -83,7 +84,7 @@ func (w *Worker) process(stop <-chan bool, stopProc chan<- bool, wg *sync.WaitGr
 				w.tagProc.send(string(rep))
 			}
 
-			// log.Println(u.Envelope(fmt.Sprintf("%s [w.send] total images: %d", logHeader, len(w.repos.Repositories[:]))))
+			log.Println(u.Envelope(fmt.Sprintf("%s [w.send] total images: %d", logHeader, len(w.repos.Repositories[:]))))
 
 		case <-stop:
 			defer wg.Done()
@@ -184,8 +185,6 @@ func (tp *TagProcessor) process() {
 				// log.Println(u.Envelope(fmt.Sprintf("%s [t.receive] image: %s:%s %v", logHeader, img, t, d)))
 			}(tg)
 		}
-
-		// saveImageTag(img)
 		atomic.AddInt64(&tp.count, 1)
 	}
 }
